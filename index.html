@@ -2,8 +2,8 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gestione Ordini</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ordini</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
@@ -17,283 +17,204 @@
       text-align: center;
       color: #0077b6;
       margin-bottom: 20px;
+
     }
-    .client-name, .search-bar, .extra-article, .notes, .top-buttons {
-      margin-bottom: 15px;
-    }
-    label {
-      font-weight: 600;
-      margin-right: 10px;
-    }
-    input[type="text"], textarea {
-      padding: 6px 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-      font-family: 'Poppins', sans-serif;
-    }
-    input[type="text"] {
-      width: 250px;
-      max-width: 100%;
-    }
-    textarea {
+    input[type="text"], input[type="number"] {
       width: 100%;
-      font-size: 16px;
-      font-family: 'Poppins', sans-serif;
-      resize: vertical;
-      min-height: 50px;
-    }
-    button {
-      background-color: #0077b6;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin: 5px 5px 5px 0;
-    }
-    button:hover {
-      background-color: #023e8a;
+      padding: 4px;
+      box-sizing: border-box;
     }
     table {
       width: 100%;
       border-collapse: collapse;
+      margin-top: 15px;
       background-color: white;
     }
     th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
+      border: 1px solid #ccc;
+      padding: 6px;
       text-align: left;
     }
     th {
-      background-color: #ff8500;
+      background-color: #0077b6;
       color: white;
     }
-    td input {
-      width: 60px;
-      padding: 4px;
-      font-size: 14px;
-      font-family: 'Poppins', sans-serif;
-      text-align: center;
+    .controls {
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-
-    /* Stili pop-up carrello */
-    #cartPopup {
+    button {
+      padding: 8px 12px;
+      background-color: #0077b6;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #023e8a;
+    }
+    #extraPopup {
+      display: none;
       position: fixed;
-      top: 60px;
+      top: 80px;
       left: 50%;
       transform: translateX(-50%);
-      width: 90%;
-      max-width: 700px;
-      background: #e0f7fa;
+      background: white;
       border: 2px solid #0077b6;
-      border-radius: 10px;
       padding: 15px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      border-radius: 10px;
       z-index: 1000;
-      display: none;
+      width: 90%;
+      max-width: 500px;
     }
-    #cartPopup h2 {
-      color: #0077b6;
-      margin-bottom: 10px;
+    #extraPopup h2 {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    #cartPopup h2 button {
-      background: transparent;
-      color: #0077b6;
-      font-size: 22px;
-      padding: 0 8px;
-      border: none;
-      cursor: pointer;
-    }
-    #cartPopup table {
-      background: white;
-      max-height: 300px;
-      overflow-y: auto;
-      display: block;
-    }
-    #cartPopup table thead, #cartPopup table tbody tr {
-      display: table;
+    #extraPopup input {
       width: 100%;
-      table-layout: fixed;
     }
-
-    /* Bottone apertura carrello */
-    #openCartBtn {
-      background-color: #ff8500;
-      margin-bottom: 15px;
-      font-weight: 600;
-    }
-
     @media (max-width: 600px) {
-      input[type="text"] {
-        width: 100%;
-        margin-bottom: 8px;
-      }
-      .top-buttons {
-        display: flex;
+      .controls {
         flex-direction: column;
-        gap: 10px;
       }
-      button {
-        width: 100%;
-        margin: 0 0 10px 0;
-      }
-      #cartPopup {
-        width: 95%;
-        top: 50px;
+      table, th, td {
+        font-size: 14px;
       }
     }
   </style>
 </head>
 <body>
-  <h1>Gestione Ordini</h1>
 
-  <div class="client-name">
-    <label for="clienteInput">Nome Cliente:</label>
-    <input type="text" id="clienteInput" placeholder="Inserisci nome cliente" />
-  </div>
+<h1>Ordini</h1>
 
-  <div class="notes">
-  <label for="orderNotes">Note ordine:</label><br />
-  <textarea id="orderNotes" placeholder="Inserisci note..."></textarea>
+<div class="controls">
+  <input type="text" id="cliente" placeholder="Nome cliente" />
+  <input type="text" id="search" placeholder="Cerca..." />
+  <button onclick="generateExcel()">Genera XLS</button>
+  <button id="openExtraBtn">+ Articoli Extra</button>
 </div>
 
-  <div class="search-bar">
-    <label for="searchInput">Cerca:</label>
-    <input type="text" id="searchInput" placeholder="Cerca per codice o descrizione..." />
-  </div>
+<table id="catalogoTable">
+  <thead>
+    <tr>
+      <th>Codice</th>
+      <th>Descrizione</th>
+      <th>Quantità</th>
+      <th>P.P.</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
-  <button id="openExtraBtn">+ Articoli Extra</button>
-
+<!-- POPUP ARTICOLI EXTRA -->
 <div id="extraPopup">
   <h2>
     Articoli Extra
     <button onclick="closeExtraPopup()">×</button>
   </h2>
   <table id="extraTable">
-    ...
-  </table>
-  <button onclick="addExtraRow()">+ Aggiungi Riga</button>
-</div>
-
-  <button onclick="generaXLS()">Esporta XLS</button>
-
-  <table>
     <thead>
       <tr>
         <th>Codice</th>
         <th>Descrizione</th>
-        <!-- Categoria e Prezzo rimossi -->
         <th>Quantità</th>
         <th>P.P.</th>
       </tr>
     </thead>
-    <tbody id="tableBody"></tbody>
+    <tbody></tbody>
   </table>
+  <button onclick="addExtraRow()">+ Aggiungi Riga</button>
+</div>
 
-  <script>
-    let inputData = {};
+<script>
+  const inputData = {};
 
-    function loadCSVFromGitHub() {
-      const url = "https://raw.githubusercontent.com/mosynaa/ordinecil/main/catalogo.csv";
-      fetch(url)
-        .then(response => response.text())
-        .then(data => {
-          const lines = data.trim().split('\n');
-          lines.shift(); // rimuove intestazione
-          const tbody = document.getElementById('tableBody');
-          tbody.innerHTML = '';
+  async function loadCSVFromGitHub() {
+    const url = "https://raw.githubusercontent.com/mosynaa/ordinecil/main/catalogo.csv";
+    const response = await fetch(url);
+    const text = await response.text();
+    const rows = text.trim().split("\n").slice(1).map(row => row.split(","));
+    const tbody = document.querySelector("#catalogoTable tbody");
+    tbody.innerHTML = "";
 
-          lines.forEach((line) => {
-            const cells = line.split(',');
-            const codice = cells[0];
-            const descrizione = cells[1];
-            // ignoriamo categoria e prezzo
+    rows.forEach(([codice, descrizione, categoria, prezzo]) => {
+      const row = document.createElement("tr");
 
-            const row = document.createElement('tr');
-            row.dataset.codice = codice.toLowerCase();
-            row.dataset.descrizione = descrizione.toLowerCase();
+      const qtKey = `qt_${codice}`;
+      const ppKey = `pp_${codice}`;
 
-            const codiceCell = document.createElement('td');
-            codiceCell.textContent = codice;
-            row.appendChild(codiceCell);
-
-            const descrizioneCell = document.createElement('td');
-            descrizioneCell.textContent = descrizione;
-            row.appendChild(descrizioneCell);
-
-            const quantitaCell = document.createElement('td');
-            const quantitaInput = document.createElement('input');
-            quantitaInput.type = 'number';
-            quantitaInput.placeholder = 'CT';
-            quantitaInput.value = inputData[codice]?.quantita || '';
-            quantitaInput.addEventListener('input', () => {
-              inputData[codice] = inputData[codice] || {};
-              inputData[codice].quantita = quantitaInput.value;
-            });
-            quantitaCell.appendChild(quantitaInput);
-            row.appendChild(quantitaCell);
-
-            const prezzoPagatoCell = document.createElement('td');
-            const prezzoInput = document.createElement('input');
-            prezzoInput.type = 'number';
-            prezzoInput.placeholder = 'P.P.';
-            prezzoInput.value = inputData[codice]?.prezzoPagato || '';
-            prezzoInput.addEventListener('input', () => {
-              inputData[codice] = inputData[codice] || {};
-              inputData[codice].prezzoPagato = prezzoInput.value;
-            });
-            prezzoPagatoCell.appendChild(prezzoInput);
-            row.appendChild(prezzoPagatoCell);
-
-            tbody.appendChild(row);
-          });
-        });
-    }
-
-    function filterTable() {
-      const filtro = document.getElementById('searchInput').value.toLowerCase();
-      const rows = document.querySelectorAll('#tableBody tr');
-      rows.forEach(row => {
-        const codice = row.dataset.codice || '';
-        const descrizione = row.dataset.descrizione || '';
-        const match = codice.includes(filtro) || descrizione.includes(filtro);
-        row.style.display = match ? '' : 'none';
-      });
-    }
-
-    function generaXLS() {
-      const nomeCliente = document.getElementById('clienteInput').value.trim() || 'Ordine';
-
-      const dati = [["Codice", "Descrizione", "Quantità", "P.P."]];
-
-      document.querySelectorAll('#tableBody tr').forEach(row => {
-        if (row.style.display === "none") return; // escludi righe filtrate
-
-        const codice = row.cells[0].textContent;
-        const descrizione = row.cells[1].textContent;
-        const quantita = row.cells[2].querySelector('input').value || '';
-        const prezzoPagato = row.cells[3].querySelector('input').value || '';
-
-        if (quantita || prezzoPagato) {
-          dati.push([codice, descrizione, quantita, prezzoPagato]);
-        }
-      });
-
-      const ws = XLSX.utils.aoa_to_sheet(dati);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Ordine");
-
-      XLSX.writeFile(wb, `${nomeCliente}.xlsx`);
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadCSVFromGitHub();
-      document.getElementById('searchInput').addEventListener('input', filterTable);
+      row.innerHTML = `
+        <td>${codice}</td>
+        <td>${descrizione}</td>
+        <td><input type="number" placeholder="CT" value="${inputData[qtKey] || ""}" oninput="inputData['${qtKey}']=this.value" /></td>
+        <td><input type="number" placeholder="P.P." value="${inputData[ppKey] || ""}" oninput="inputData['${ppKey}']=this.value" /></td>
+      `;
+      tbody.appendChild(row);
     });
-  </script>
+  }
+
+  document.getElementById("search").addEventListener("input", function () {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll("#catalogoTable tbody tr");
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(filter) ? "" : "none";
+    });
+  });
+
+  function generateExcel() {
+    const cliente = document.getElementById("cliente").value || "Cliente";
+    const wb = XLSX.utils.book_new();
+    const data = [["Codice", "Descrizione", "Quantità", "P.P."]];
+
+    document.querySelectorAll("#catalogoTable tbody tr").forEach(row => {
+      const codice = row.cells[0].textContent.trim();
+      const descrizione = row.cells[1].textContent.trim();
+      const qt = row.cells[2].querySelector("input").value || "";
+      const pp = row.cells[3].querySelector("input").value || "";
+      if (qt || pp) data.push([codice, descrizione, qt, pp]);
+    });
+
+    document.querySelectorAll("#extraTable tbody tr").forEach(row => {
+      const codice = row.cells[0].querySelector("input").value || "";
+      const descrizione = row.cells[1].querySelector("input").value || "";
+      const qt = row.cells[2].querySelector("input").value || "";
+      const pp = row.cells[3].querySelector("input").value || "";
+      if (qt || pp) data.push([codice, descrizione, qt, pp]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet([[`Cliente: ${cliente}`], [], ...data]);
+    XLSX.utils.book_append_sheet(wb, ws, "Ordine");
+    XLSX.writeFile(wb, `${cliente.replace(/\s+/g, "_")}_ordine.xlsx`);
+  }
+
+  function openExtraPopup() {
+    document.getElementById("extraPopup").style.display = "block";
+  }
+
+  function closeExtraPopup() {
+    document.getElementById("extraPopup").style.display = "none";
+  }
+
+  function addExtraRow() {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><input type="text" placeholder="Codice" /></td>
+      <td><input type="text" placeholder="Descrizione" /></td>
+      <td><input type="number" placeholder="CT" /></td>
+      <td><input type="number" placeholder="P.P." /></td>
+    `;
+    document.querySelector("#extraTable tbody").appendChild(row);
+  }
+
+  document.getElementById("openExtraBtn").addEventListener("click", openExtraPopup);
+  window.onload = loadCSVFromGitHub;
+</script>
+
 </body>
 </html>
