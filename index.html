@@ -123,7 +123,7 @@
       <th>Codice</th>
       <th>Descrizione</th>
       <th>Quantità</th>
-      <th>P.P.</th>
+      <th>Prezzo</th>
     </tr>
   </thead>
   <tbody></tbody>
@@ -141,7 +141,7 @@
         <th>Codice</th>
         <th>Descrizione</th>
         <th>Quantità</th>
-        <th>P.P.</th>
+        <th>Prezzo</th>
       </tr>
     </thead>
     <tbody>
@@ -196,7 +196,7 @@
   function generateExcel() {
     const cliente = document.getElementById("cliente").value || "Cliente";
     const wb = XLSX.utils.book_new();
-    const data = [["Codice", "Descrizione", "Quantità", "P.P."]];
+    const data = [["Codice", "Descrizione", "Quantità", "Prezzo"]];
 
     document.querySelectorAll("#catalogoTable tbody tr").forEach(row => {
       const codice = row.cells[0].textContent.trim();
