@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Catalogo Ordini</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -21,6 +22,13 @@
       font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 4px;
+    }
+
+    #searchInput, #clienteInput {
+      width: 100%;
+      max-width: 300px;
+      margin: 0.5rem auto;
+      display: block;
     }
 
     table {
@@ -44,18 +52,29 @@
       width: 80px;
     }
 
-    #searchInput {
-      width: 100%;
-      max-width: 300px;
-      margin: 0 auto;
+    button {
+      margin: 1rem auto;
       display: block;
-      margin-bottom: 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background-color: #3c8dbc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #2e6b8c;
     }
   </style>
 </head>
 <body>
   <h1>Catalogo Ordini</h1>
+
+  <input type="text" id="clienteInput" placeholder="Nome Cliente" />
   <input type="text" id="searchInput" placeholder="Cerca per codice o descrizione..." />
+  <button onclick="generaXLS()">Esporta XLS</button>
 
   <table>
     <thead>
@@ -72,7 +91,7 @@
   </table>
 
   <script>
-    let inputData = {}; // Per mantenere i dati
+    let inputData = {};
 
     function loadCSVFromGitHub() {
       const url = "https://raw.githubusercontent.com/mosynaa/ordinecil/main/catalogo.csv";
@@ -80,93 +99,100 @@
         .then(response => response.text())
         .then(data => {
           const lines = data.trim().split('\n');
-          lines.shift(); // Rimuove intestazione
-          renderTable(lines);
+          const headers = lines.shift().split(',');
+          const tbody = document.getElementById('tableBody');
+          tbody.innerHTML = '';
+
+          lines.forEach((line) => {
+            const cells = line.split(',');
+            const codice = cells[0];
+            const descrizione = cells[1];
+            const categoria = cells[2];
+            const prezzo = cells[3];
+
+            const row = document.createElement('tr');
+            row.dataset.codice = codice.toLowerCase();
+            row.dataset.descrizione = descrizione.toLowerCase();
+
+            const codiceCell = document.createElement('td');
+            codiceCell.textContent = codice;
+            row.appendChild(codiceCell);
+
+            const descrizioneCell = document.createElement('td');
+            descrizioneCell.textContent = descrizione;
+            row.appendChild(descrizioneCell);
+
+            const categoriaCell = document.createElement('td');
+            categoriaCell.textContent = categoria;
+            row.appendChild(categoriaCell);
+
+            const prezzoCell = document.createElement('td');
+            prezzoCell.textContent = prezzo;
+            row.appendChild(prezzoCell);
+
+            const quantitaCell = document.createElement('td');
+            const quantitaInput = document.createElement('input');
+            quantitaInput.type = 'number';
+            quantitaInput.placeholder = 'CT';
+            quantitaInput.value = inputData[codice]?.quantita || '';
+            quantitaInput.addEventListener('input', () => {
+              inputData[codice] = inputData[codice] || {};
+              inputData[codice].quantita = quantitaInput.value;
+            });
+            quantitaCell.appendChild(quantitaInput);
+            row.appendChild(quantitaCell);
+
+            const prezzoPagatoCell = document.createElement('td');
+            const prezzoInput = document.createElement('input');
+            prezzoInput.type = 'number';
+            prezzoInput.placeholder = 'P.P.';
+            prezzoInput.value = inputData[codice]?.prezzoPagato || '';
+            prezzoInput.addEventListener('input', () => {
+              inputData[codice] = inputData[codice] || {};
+              inputData[codice].prezzoPagato = prezzoInput.value;
+            });
+            prezzoPagatoCell.appendChild(prezzoInput);
+            row.appendChild(prezzoPagatoCell);
+
+            tbody.appendChild(row);
+          });
         });
-    }
-
-    function renderTable(lines) {
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = '';
-
-      lines.forEach(line => {
-        const cells = line.split(',');
-        const codice = cells[0];
-        const descrizione = cells[1];
-        const categoria = cells[2];
-        const prezzo = cells[3];
-
-        const row = document.createElement('tr');
-        row.dataset.codice = codice.toLowerCase();
-        row.dataset.descrizione = descrizione.toLowerCase();
-
-        // Codice
-        const codiceCell = document.createElement('td');
-        codiceCell.textContent = codice;
-        row.appendChild(codiceCell);
-
-        // Descrizione
-        const descrizioneCell = document.createElement('td');
-        descrizioneCell.textContent = descrizione;
-        row.appendChild(descrizioneCell);
-
-        // Categoria
-        const categoriaCell = document.createElement('td');
-        categoriaCell.textContent = categoria;
-        row.appendChild(categoriaCell);
-
-        // Prezzo
-        const prezzoCell = document.createElement('td');
-        prezzoCell.textContent = prezzo;
-        row.appendChild(prezzoCell);
-
-        // Quantità
-        const quantitaCell = document.createElement('td');
-        const quantitaInput = document.createElement('input');
-        quantitaInput.type = 'number';
-        quantitaInput.placeholder = 'CT';
-        quantitaInput.value = inputData[codice]?.quantita || '';
-        quantitaInput.addEventListener('input', () => {
-          inputData[codice] = inputData[codice] || {};
-          inputData[codice].quantita = quantitaInput.value;
-        });
-        quantitaCell.appendChild(quantitaInput);
-        row.appendChild(quantitaCell);
-
-        // Prezzo Pagato
-        const prezzoPagatoCell = document.createElement('td');
-        const prezzoInput = document.createElement('input');
-        prezzoInput.type = 'number';
-        prezzoInput.placeholder = 'P.P.';
-        prezzoInput.value = inputData[codice]?.prezzoPagato || '';
-        prezzoInput.addEventListener('input', () => {
-          inputData[codice] = inputData[codice] || {};
-          inputData[codice].prezzoPagato = prezzoInput.value;
-        });
-        prezzoPagatoCell.appendChild(prezzoInput);
-        row.appendChild(prezzoPagatoCell);
-
-        tbody.appendChild(row);
-      });
     }
 
     function filterTable() {
       const filtro = document.getElementById('searchInput').value.toLowerCase();
-      const url = "https://raw.githubusercontent.com/mosynaa/ordinecil/main/catalogo.csv";
+      const rows = document.querySelectorAll('#tableBody tr');
+      rows.forEach(row => {
+        const codice = row.dataset.codice || '';
+        const descrizione = row.dataset.descrizione || '';
+        const match = codice.includes(filtro) || descrizione.includes(filtro);
+        row.style.display = match ? '' : 'none';
+      });
+    }
 
-      fetch(url)
-        .then(response => response.text())
-        .then(data => {
-          const lines = data.trim().split('\n');
-          lines.shift(); // Rimuove intestazione
+    function generaXLS() {
+      const nomeCliente = document.getElementById('clienteInput').value.trim() || 'Ordine';
 
-          const filteredLines = lines.filter(line => {
-            const [codice, descrizione] = line.toLowerCase().split(',');
-            return codice.includes(filtro) || descrizione.includes(filtro);
-          });
+      const dati = [["Codice", "Descrizione", "Categoria", "Prezzo", "Quantità", "P.P."]];
 
-          renderTable(filteredLines);
-        });
+      document.querySelectorAll('#tableBody tr').forEach(row => {
+        const codice = row.cells[0].textContent;
+        const descrizione = row.cells[1].textContent;
+        const categoria = row.cells[2].textContent;
+        const prezzo = row.cells[3].textContent;
+        const quantita = row.cells[4].querySelector('input').value || '';
+        const prezzoPagato = row.cells[5].querySelector('input').value || '';
+
+        if (quantita || prezzoPagato) {
+          dati.push([codice, descrizione, categoria, prezzo, quantita, prezzoPagato]);
+        }
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(dati);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Ordine");
+
+      XLSX.writeFile(wb, `${nomeCliente}.xlsx`);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
