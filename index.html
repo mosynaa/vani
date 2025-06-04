@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
+    
     body {
       font-family: 'Poppins', sans-serif;
       background-color: #f5f7fa;
@@ -89,6 +90,29 @@
   </style>
 </head>
 <body>
+  <button onclick="openCarrelloPopup()">🛒 Vedi Carrello</button>
+
+<!-- POPUP CARRELLO -->
+<div id="carrelloPopup" class="popup">
+  <div class="popup-content">
+    <h2>
+      Carrello
+      <button onclick="closeCarrelloPopup()">×</button>
+    </h2>
+    <table id="carrelloTable">
+      <thead>
+        <tr>
+          <th>Codice</th>
+          <th>Descrizione</th>
+          <th>Quantità</th>
+          <th>P.P.</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
 
 <h1>Ordini</h1>
 
