@@ -159,7 +159,6 @@
       <tr>
         <th>Codice</th>
         <th>Descrizione</th>
-        <th>Categoria</th>
         <th>Prezzo</th>
         <th>Quantità</th>
         <th>P.P.</th>
@@ -206,10 +205,6 @@
         const descrizioneCell = document.createElement('td');
         descrizioneCell.textContent = descrizione;
         row.appendChild(descrizioneCell);
-
-        const categoriaCell = document.createElement('td');
-        categoriaCell.textContent = categoria;
-        row.appendChild(categoriaCell);
 
         const prezzoCell = document.createElement('td');
         prezzoCell.textContent = prezzo;
@@ -265,19 +260,18 @@
     function generaXLS() {
       const nomeCliente = document.getElementById('clienteInput').value.trim() || 'Ordine';
 
-      const dati = [["Codice", "Descrizione", "Categoria", "Prezzo", "Quantità", "P.P."]];
+      const dati = [["Codice", "Descrizione", "Prezzo", "Quantità", "P.P."]];
 
       document.querySelectorAll('#tableBody tr').forEach(row => {
         const codice = row.cells[0].textContent;
         const descrizione = row.cells[1].textContent;
-        const categoria = row.cells[2].textContent;
         const prezzo = row.cells[3].textContent;
         const quantita = row.cells[4].querySelector('input').value || '';
         const prezzoPagato = row.cells[5].querySelector('input').value || '';
 
         // Inserisci riga solo se quantità o prezzo pagato sono valorizzati
         if (quantita || prezzoPagato) {
-          dati.push([codice, descrizione, categoria, prezzo, quantita, prezzoPagato]);
+          dati.push([codice, descrizione, prezzo, quantita, prezzoPagato]);
         }
       });
 
