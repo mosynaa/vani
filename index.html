@@ -72,7 +72,7 @@
   </table>
 
   <script>
-    let inputData = {}; // Dati salvati
+    let inputData = {}; // Per mantenere i dati
 
     function loadCSVFromGitHub() {
       const url = "https://raw.githubusercontent.com/mosynaa/ordinecil/main/catalogo.csv";
@@ -80,86 +80,93 @@
         .then(response => response.text())
         .then(data => {
           const lines = data.trim().split('\n');
-          const headers = lines.shift().split(',');
-          const tbody = document.getElementById('tableBody');
-          tbody.innerHTML = '';
-
-          lines.forEach((line, index) => {
-            const cells = line.split(',');
-            const codice = cells[0];
-            const descrizione = cells[1];
-            const categoria = cells[2];
-            const prezzo = cells[3];
-
-            const row = document.createElement('tr');
-            row.dataset.codice = codice.toLowerCase();
-            row.dataset.descrizione = descrizione.toLowerCase();
-
-            // Codice
-            const codiceCell = document.createElement('td');
-            codiceCell.textContent = codice;
-            row.appendChild(codiceCell);
-
-            // Descrizione
-            const descrizioneCell = document.createElement('td');
-            descrizioneCell.textContent = descrizione;
-            row.appendChild(descrizioneCell);
-
-            // Categoria
-            const categoriaCell = document.createElement('td');
-            categoriaCell.textContent = categoria;
-            row.appendChild(categoriaCell);
-
-            // Prezzo
-            const prezzoCell = document.createElement('td');
-            prezzoCell.textContent = prezzo;
-            row.appendChild(prezzoCell);
-
-            // Quantità
-            const quantitaCell = document.createElement('td');
-            const quantitaInput = document.createElement('input');
-            quantitaInput.type = 'number';
-            quantitaInput.placeholder = 'CT';
-            quantitaInput.classList.add('quantita');
-            quantitaInput.dataset.rowid = codice;
-            quantitaInput.value = inputData[codice]?.quantita || '';
-            quantitaInput.addEventListener('input', () => {
-              inputData[codice] = inputData[codice] || {};
-              inputData[codice].quantita = quantitaInput.value;
-            });
-            quantitaCell.appendChild(quantitaInput);
-            row.appendChild(quantitaCell);
-
-            // Prezzo Pagato
-            const prezzoPagatoCell = document.createElement('td');
-            const prezzoInput = document.createElement('input');
-            prezzoInput.type = 'number';
-            prezzoInput.placeholder = 'P.P.';
-            prezzoInput.classList.add('prezzo-pagato');
-            prezzoInput.dataset.rowid = codice;
-            prezzoInput.value = inputData[codice]?.prezzoPagato || '';
-            prezzoInput.addEventListener('input', () => {
-              inputData[codice] = inputData[codice] || {};
-              inputData[codice].prezzoPagato = prezzoInput.value;
-            });
-            prezzoPagatoCell.appendChild(prezzoInput);
-            row.appendChild(prezzoPagatoCell);
-
-            tbody.appendChild(row);
-          });
+          lines.shift(); // Rimuove intestazione
+          renderTable(lines);
         });
+    }
+
+    function renderTable(lines) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      lines.forEach(line => {
+        const cells = line.split(',');
+        const codice = cells[0];
+        const descrizione = cells[1];
+        const categoria = cells[2];
+        const prezzo = cells[3];
+
+        const row = document.createElement('tr');
+        row.dataset.codice = codice.toLowerCase();
+        row.dataset.descrizione = descrizione.toLowerCase();
+
+        // Codice
+        const codiceCell = document.createElement('td');
+        codiceCell.textContent = codice;
+        row.appendChild(codiceCell);
+
+        // Descrizione
+        const descrizioneCell = document.createElement('td');
+        descrizioneCell.textContent = descrizione;
+        row.appendChild(descrizioneCell);
+
+        // Categoria
+        const categoriaCell = document.createElement('td');
+        categoriaCell.textContent = categoria;
+        row.appendChild(categoriaCell);
+
+        // Prezzo
+        const prezzoCell = document.createElement('td');
+        prezzoCell.textContent = prezzo;
+        row.appendChild(prezzoCell);
+
+        // Quantità
+        const quantitaCell = document.createElement('td');
+        const quantitaInput = document.createElement('input');
+        quantitaInput.type = 'number';
+        quantitaInput.placeholder = 'CT';
+        quantitaInput.value = inputData[codice]?.quantita || '';
+        quantitaInput.addEventListener('input', () => {
+          inputData[codice] = inputData[codice] || {};
+          inputData[codice].quantita = quantitaInput.value;
+        });
+        quantitaCell.appendChild(quantitaInput);
+        row.appendChild(quantitaCell);
+
+        // Prezzo Pagato
+        const prezzoPagatoCell = document.createElement('td');
+        const prezzoInput = document.createElement('input');
+        prezzoInput.type = 'number';
+        prezzoInput.placeholder = 'P.P.';
+        prezzoInput.value = inputData[codice]?.prezzoPagato || '';
+        prezzoInput.addEventListener('input', () => {
+          inputData[codice] = inputData[codice] || {};
+          inputData[codice].prezzoPagato = prezzoInput.value;
+        });
+        prezzoPagatoCell.appendChild(prezzoInput);
+        row.appendChild(prezzoPagatoCell);
+
+        tbody.appendChild(row);
+      });
     }
 
     function filterTable() {
       const filtro = document.getElementById('searchInput').value.toLowerCase();
-      const rows = document.querySelectorAll('#tableBody tr');
+      const url = "https://raw.githubusercontent.com/mosynaa/ordinecil/main/catalogo.csv";
 
-      rows.forEach(row => {
-        const codice = row.dataset.codice || '';
-        const descrizione = row.dataset.descrizione || '';
-        const match = codice.includes(filtro) || descrizione.includes(filtro);
-        row.style.display = match ? '' : 'none';
-      });
+      fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          const lines = data.trim().split('\n');
+          lines.shift(); // Rimuove intestazione
+
+          const filteredLines = lines.filter(line => {
+            const [codice, descrizione] = line.toLowerCase().split(',');
+            return codice.includes(filtro) || descrizione.includes(filtro);
+          });
+
+          renderTable(filteredLines);
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
