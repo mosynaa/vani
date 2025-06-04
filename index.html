@@ -76,6 +76,8 @@
       font-family: 'Poppins', sans-serif;
       text-align: center;
     }
+
+    /* Stili pop-up carrello */
     #cartPopup {
       position: fixed;
       top: 60px;
@@ -117,11 +119,14 @@
       width: 100%;
       table-layout: fixed;
     }
+
+    /* Bottone apertura carrello */
     #openCartBtn {
       background-color: #ff8500;
       margin-bottom: 15px;
       font-weight: 600;
     }
+
     @media (max-width: 600px) {
       input[type="text"] {
         width: 100%;
@@ -144,6 +149,270 @@
   </style>
 </head>
 <body>
-  <!-- Il resto del codice HTML va qui, incluso script JS per caricamento CSV, ricerca, filtri, Excel, ecc. -->
+  <!-- BOTTONE PER APRIRE IL CARRELLO -->
+  <button id="openCartBtn" onclick="toggleCart()">Mostra/Nascondi Carrello 🛒</button>
+
+  <!-- POPUP CARRELLO -->
+  <div id="cartPopup">
+    <h2>
+      Carrello
+      <button onclick="toggleCart()" aria-label="Chiudi carrello">&times;</button>
+    </h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Codice</th>
+          <th>Descrizione</th>
+          <th>Qtà</th>
+        </tr>
+      </thead>
+      <tbody id="cartBody"></tbody>
+    </table>
+  </div>
+
+  <h1>Gestione Ordini</h1>
+
+  <div class="client-name">
+    <label for="clientName">Nome Cliente:</label>
+    <input type="text" id="clientName" placeholder="Inserisci nome cliente" />
+  </div>
+
+  <div class="search-bar">
+    <label for="searchInput">Cerca articolo:</label>
+    <input type="text" id="searchInput" placeholder="Scrivi per filtrare..." oninput="filterTable()" />
+  </div>
+
+  <div class="extra-article">
+    <h3>Aggiungi Articolo Extra</h3>
+    <input type="text" id="extraDesc" placeholder="Descrizione" />
+    <input type="text" id="extraQty" placeholder="Qtà" />
+    <input type="text" id="extraPrice" placeholder="Prezzo" />
+    <button onclick="addExtraArticle()">Aggiungi</button>
+  </div>
+
+  <div class="notes">
+    <h3>Note Ordine</h3>
+    <textarea id="noteField" placeholder="Scrivi qui le note..."></textarea>
+  </div>
+
+  <div class="top-buttons">
+    <button onclick="generateExcel()">Genera Excel</button>
+    <button onclick="resetValues()">Azzera Valori</button>
+  </div>
+
+  <table id="orderTable">
+    <thead>
+      <tr>
+        <th>Codice</th>
+        <th>Descrizione</th>
+        <th>Qtà</th>
+        <th>Prezzo</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <script>
+    let catalogData = [];
+    let extraData = [];
+
+    async function loadCSV() {
+      const response = await fetch('https://raw.githubusercontent.com/mosynaa/cilva/main/catalogo.csv');
+      const text = await response.text();
+      const rows = text.trim().split('\n').slice(1);
+      catalogData = rows.map(row => {
+        const [codice, descrizione, categoria, prezzo] = row.split(',');
+        return { codice: codice.trim(), descrizione: descrizione.trim(), prezzo: prezzo?.trim() || '', qty: '' };
+      });
+      renderTable();
+      updateCart();
+    }
+
+    function renderTable() {
+      const tableBody = document.getElementById('tableBody');
+      tableBody.innerHTML = '';
+
+      // Prima articoli extra
+      extraData.forEach((item, index) => {
+        const row = document.createElement('tr');
+        row.dataset.extraIndex = index;
+        row.innerHTML = `
+          <td>${item.codice || ''}</td>
+          <td>${item.descrizione || ''}</td>
+          <td><input type="text" value="${item.qty}" onchange="updateExtraQty(${index}, this.value)" placeholder="Qtà"></td>
+          <td><input type="text" value="${item.prezzo}" onchange="updateExtraPrice(${index}, this.value)" placeholder="Prezzo"></td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      // Poi articoli catalogo
+      catalogData.forEach((item, index) => {
+        const row = document.createElement('tr');
+        row.dataset.catalogIndex = index;
+        row.innerHTML = `
+          <td>${item.codice || ''}</td>
+          <td>${item.descrizione || ''}</td>
+          <td><input type="text" value="${item.qty}" onchange="updateCatalogQty(${index}, this.value)" placeholder="Qtà"></td>
+          <td><input type="text" value="${item.prezzo}" onchange="updateCatalogPrice(${index}, this.value)" placeholder="Prezzo"></td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      filterTable(); // aggiorna visibilità secondo filtro
+      updateCart();
+    }
+
+    // Aggiornamento dati articoli extra
+    function updateExtraQty(index, value) {
+      extraData[index].qty = value;
+      updateCart();
+    }
+    function updateExtraPrice(index, value) {
+      extraData[index].prezzo = value;
+      updateCart();
+    }
+
+    // Aggiornamento dati catalogo
+    function updateCatalogQty(index, value) {
+      catalogData[index].qty = value;
+      updateCart();
+    }
+    function updateCatalogPrice(index, value) {
+      catalogData[index].prezzo = value;
+      updateCart();
+    }
+
+    function addExtraArticle() {
+      const desc = document.getElementById('extraDesc').value.trim();
+      const qty = document.getElementById('extraQty').value.trim();
+      const price = document.getElementById('extraPrice').value.trim();
+      if (!desc) {
+        alert('Descrizione articolo extra obbligatoria.');
+        return;
+      }
+      extraData.push({ codice: '', descrizione: desc, qty: qty, prezzo: price });
+      document.getElementById('extraDesc').value = '';
+      document.getElementById('extraQty').value = '';
+      document.getElementById('extraPrice').value = '';
+      renderTable();
+    }
+
+    // Funzione filtro ricerca con mantenimento dati
+    function filterTable() {
+      const filter = document.getElementById('searchInput').value.toLowerCase();
+      const tbody = document.getElementById('tableBody');
+      [...tbody.rows].forEach(row => {
+        const descr = row.cells[1].textContent.toLowerCase();
+        if (descr.includes(filter)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    // Funzione per resettare tutti i dati
+    function resetValues() {
+      if (confirm('Sei sicuro di azzerare quantità e prezzi inseriti?')) {
+        extraData = [];
+        catalogData.forEach(item => {
+          item.qty = '';
+          item.prezzo = '';
+        });
+        document.getElementById('clientName').value = '';
+        document.getElementById('noteField').value = '';
+        renderTable();
+      }
+    }
+
+    // GENERAZIONE FILE EXCEL
+    function generateExcel() {
+      const wb = XLSX.utils.book_new();
+      const wsData = [];
+      const client = document.getElementById('clientName').value || 'Cliente';
+
+      // Intestazione e note
+      wsData.push([`Ordine di: ${client}`]);
+      wsData.push([`Note: ${document.getElementById('noteField').value || ''}`]);
+      wsData.push([]);
+      wsData.push(['Codice', 'Descrizione', 'Qtà', 'Prezzo']);
+
+      // Unisci extra + catalog con quantità > 0 o prezzo compilato
+      const combined = [...extraData, ...catalogData];
+      combined.forEach(item => {
+        const qty = item.qty.trim();
+        const prezzo = item.prezzo.trim();
+        if (qty || prezzo) {
+          wsData.push([
+            item.codice || '',
+            item.descrizione || '',
+            qty || 'CT',
+            prezzo || 'P.P.'
+          ]);
+        }
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      XLSX.utils.book_append_sheet(wb, ws, "Ordine");
+
+      XLSX.writeFile(wb, `${client}_ordine.xlsx`);
+    }
+
+    // --- Carrello: mostra in popup gli articoli con quantità > 0 ---
+    function updateCart() {
+  const cartBody = document.getElementById('cartBody');
+  cartBody.innerHTML = '';
+
+  const combined = [...extraData, ...catalogData];
+  combined.forEach((item, idx) => {
+    if (item.qty && item.qty.trim() !== '' && item.qty.trim() !== '0') {
+      const tr = document.createElement('tr');
+
+      // Codice e descrizione solo testo
+      const codiceTd = document.createElement('td');
+      codiceTd.textContent = item.codice || '';
+      tr.appendChild(codiceTd);
+
+      const descTd = document.createElement('td');
+      descTd.textContent = item.descrizione || '';
+      tr.appendChild(descTd);
+
+      // Qtà input modificabile
+      const qtyTd = document.createElement('td');
+      const qtyInput = document.createElement('input');
+      qtyInput.type = 'text';
+      qtyInput.value = item.qty;
+      qtyInput.size = 4;
+      qtyInput.onchange = (e) => {
+        const val = e.target.value;
+        if (idx < extraData.length) {
+          extraData[idx].qty = val;
+        } else {
+          catalogData[idx - extraData.length].qty = val;
+        }
+        renderTable();
+      };
+      qtyTd.appendChild(qtyInput);
+      tr.appendChild(qtyTd);
+
+      cartBody.appendChild(tr);
+    }
+  });
+}
+
+
+    // Toggle visibilità popup carrello
+    function toggleCart() {
+      const cart = document.getElementById('cartPopup');
+      if (cart.style.display === 'block') {
+        cart.style.display = 'none';
+      } else {
+        updateCart();
+        cart.style.display = 'block';
+      }
+    }
+
+    loadCSV();
+  </script>
 </body>
 </html>
