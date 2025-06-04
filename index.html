@@ -165,31 +165,21 @@
     <label for="searchInput">Cerca:</label>
     <input type="text" id="searchInput" placeholder="Cerca per codice o descrizione..." />
   </div>
-  
-  <button onclick="generaXLS()">Esporta XLS</button>
 
-  <div class="extra-article">
-  <h2>Articoli Extra</h2>
+  <button id="openExtraBtn">+ Articoli Extra</button>
+
+<div id="extraPopup">
+  <h2>
+    Articoli Extra
+    <button onclick="closeExtraPopup()">×</button>
+  </h2>
   <table id="extraTable">
-    <thead>
-      <tr>
-        <th>Codice</th>
-        <th>Descrizione</th>
-        <th>Quantità</th>
-        <th>P.P.</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><input type="text" placeholder="Codice"></td>
-        <td><input type="text" placeholder="Descrizione"></td>
-        <td><input type="text" placeholder="CT"></td>
-        <td><input type="text" placeholder="P.P."></td>
-      </tr>
-    </tbody>
+    ...
   </table>
   <button onclick="addExtraRow()">+ Aggiungi Riga</button>
 </div>
+
+  <button onclick="generaXLS()">Esporta XLS</button>
 
   <table>
     <thead>
