@@ -91,6 +91,7 @@
   </table>
 
   <script>
+    // Qui manteniamo i dati inseriti in un oggetto per persisterli durante la ricerca
     let inputData = {};
 
     function loadCSVFromGitHub() {
@@ -99,75 +100,88 @@
         .then(response => response.text())
         .then(data => {
           const lines = data.trim().split('\n');
-          const headers = lines.shift().split(',');
-          const tbody = document.getElementById('tableBody');
-          tbody.innerHTML = '';
-
-          lines.forEach((line) => {
-            const cells = line.split(',');
-            const codice = cells[0];
-            const descrizione = cells[1];
-            const categoria = cells[2];
-            const prezzo = cells[3];
-
-            const row = document.createElement('tr');
-            row.dataset.codice = codice.toLowerCase();
-            row.dataset.descrizione = descrizione.toLowerCase();
-
-            const codiceCell = document.createElement('td');
-            codiceCell.textContent = codice;
-            row.appendChild(codiceCell);
-
-            const descrizioneCell = document.createElement('td');
-            descrizioneCell.textContent = descrizione;
-            row.appendChild(descrizioneCell);
-
-            const categoriaCell = document.createElement('td');
-            categoriaCell.textContent = categoria;
-            row.appendChild(categoriaCell);
-
-            const prezzoCell = document.createElement('td');
-            prezzoCell.textContent = prezzo;
-            row.appendChild(prezzoCell);
-
-            const quantitaCell = document.createElement('td');
-            const quantitaInput = document.createElement('input');
-            quantitaInput.type = 'number';
-            quantitaInput.placeholder = 'CT';
-            quantitaInput.value = inputData[codice]?.quantita || '';
-            quantitaInput.addEventListener('input', () => {
-              inputData[codice] = inputData[codice] || {};
-              inputData[codice].quantita = quantitaInput.value;
-            });
-            quantitaCell.appendChild(quantitaInput);
-            row.appendChild(quantitaCell);
-
-            const prezzoPagatoCell = document.createElement('td');
-            const prezzoInput = document.createElement('input');
-            prezzoInput.type = 'number';
-            prezzoInput.placeholder = 'P.P.';
-            prezzoInput.value = inputData[codice]?.prezzoPagato || '';
-            prezzoInput.addEventListener('input', () => {
-              inputData[codice] = inputData[codice] || {};
-              inputData[codice].prezzoPagato = prezzoInput.value;
-            });
-            prezzoPagatoCell.appendChild(prezzoInput);
-            row.appendChild(prezzoPagatoCell);
-
-            tbody.appendChild(row);
-          });
+          lines.shift(); // rimuove l'intestazione
+          renderTable(lines);
         });
+    }
+
+    // Funzione che renderizza la tabella in base alle righe fornite
+    function renderTable(lines) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      lines.forEach(line => {
+        const cells = line.split(',');
+        const codice = cells[0];
+        const descrizione = cells[1];
+        const categoria = cells[2];
+        const prezzo = cells[3];
+
+        const row = document.createElement('tr');
+        row.dataset.codice = codice.toLowerCase();
+        row.dataset.descrizione = descrizione.toLowerCase();
+
+        const codiceCell = document.createElement('td');
+        codiceCell.textContent = codice;
+        row.appendChild(codiceCell);
+
+        const descrizioneCell = document.createElement('td');
+        descrizioneCell.textContent = descrizione;
+        row.appendChild(descrizioneCell);
+
+        const categoriaCell = document.createElement('td');
+        categoriaCell.textContent = categoria;
+        row.appendChild(categoriaCell);
+
+        const prezzoCell = document.createElement('td');
+        prezzoCell.textContent = prezzo;
+        row.appendChild(prezzoCell);
+
+        const quantitaCell = document.createElement('td');
+        const quantitaInput = document.createElement('input');
+        quantitaInput.type = 'number';
+        quantitaInput.placeholder = 'CT';
+        quantitaInput.value = inputData[codice]?.quantita || '';
+        quantitaInput.addEventListener('input', () => {
+          inputData[codice] = inputData[codice] || {};
+          inputData[codice].quantita = quantitaInput.value;
+        });
+        quantitaCell.appendChild(quantitaInput);
+        row.appendChild(quantitaCell);
+
+        const prezzoPagatoCell = document.createElement('td');
+        const prezzoInput = document.createElement('input');
+        prezzoInput.type = 'number';
+        prezzoInput.placeholder = 'P.P.';
+        prezzoInput.value = inputData[codice]?.prezzoPagato || '';
+        prezzoInput.addEventListener('input', () => {
+          inputData[codice] = inputData[codice] || {};
+          inputData[codice].prezzoPagato = prezzoInput.value;
+        });
+        prezzoPagatoCell.appendChild(prezzoInput);
+        row.appendChild(prezzoPagatoCell);
+
+        tbody.appendChild(row);
+      });
     }
 
     function filterTable() {
       const filtro = document.getElementById('searchInput').value.toLowerCase();
-      const rows = document.querySelectorAll('#tableBody tr');
-      rows.forEach(row => {
-        const codice = row.dataset.codice || '';
-        const descrizione = row.dataset.descrizione || '';
-        const match = codice.includes(filtro) || descrizione.includes(filtro);
-        row.style.display = match ? '' : 'none';
-      });
+      const url = "https://raw.githubusercontent.com/mosynaa/ordinecil/main/catalogo.csv";
+      fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          const lines = data.trim().split('\n');
+          lines.shift(); // rimuove intestazione
+          // Filtra righe che corrispondono a codice o descrizione
+          const filteredLines = lines.filter(line => {
+            const cells = line.split(',');
+            const codice = cells[0].toLowerCase();
+            const descrizione = cells[1].toLowerCase();
+            return codice.includes(filtro) || descrizione.includes(filtro);
+          });
+          renderTable(filteredLines);
+        });
     }
 
     function generaXLS() {
@@ -183,6 +197,7 @@
         const quantita = row.cells[4].querySelector('input').value || '';
         const prezzoPagato = row.cells[5].querySelector('input').value || '';
 
+        // Inserisci riga solo se quantità o prezzo pagato sono valorizzati
         if (quantita || prezzoPagato) {
           dati.push([codice, descrizione, categoria, prezzo, quantita, prezzoPagato]);
         }
