@@ -90,29 +90,26 @@
   </style>
 </head>
 <body>
-  <button onclick="openCarrelloPopup()">🛒 Vedi Carrello</button>
+  <!-- BOTTONE PER APRIRE IL CARRELLO -->
+  <button id="openCartBtn" onclick="toggleCart()">Mostra/Nascondi Carrello 🛒</button>
 
-<!-- POPUP CARRELLO -->
-<div id="carrelloPopup" class="popup">
-  <div class="popup-content">
+  <!-- POPUP CARRELLO -->
+  <div id="cartPopup">
     <h2>
       Carrello
-      <button onclick="closeCarrelloPopup()">×</button>
+      <button onclick="toggleCart()" aria-label="Chiudi carrello">&times;</button>
     </h2>
-    <table id="carrelloTable">
+    <table>
       <thead>
         <tr>
           <th>Codice</th>
           <th>Descrizione</th>
-          <th>Quantità</th>
-          <th>P.P.</th>
+          <th>Qtà</th>
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody id="cartBody"></tbody>
     </table>
   </div>
-</div>
-
 
 <h1>Ordini</h1>
 
