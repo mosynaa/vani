@@ -113,33 +113,6 @@
   <tbody></tbody>
 </table>
 
-<!-- POPUP ARTICOLI EXTRA -->
-<div id="extraPopup">
-  <h2>
-    Articoli Extra
-    <button onclick="closeExtraPopup()">×</button>
-  </h2>
-  <table id="extraTable">
-    <thead>
-      <tr>
-        <th>Codice</th>
-        <th>Descrizione</th>
-        <th>Quantità</th>
-        <th>Prezzo</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><input type="text" placeholder="Codice" /></td>
-        <td><input type="text" placeholder="Descrizione" /></td>
-        <td><input type="number" placeholder="CT" /></td>
-        <td><input type="number" placeholder="P.P." /></td>
-      </tr>
-    </tbody>
-  </table>
-  <button onclick="addExtraRow()">+ Aggiungi Riga</button>
-</div>
-
 
 <script>
   const inputData = {};
@@ -211,16 +184,23 @@
     document.getElementById("extraPopup").style.display = "none";
   }
 
-  function addExtraRow() {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td><input type="text" placeholder="Codice" /></td>
-      <td><input type="text" placeholder="Descrizione" /></td>
-      <td><input type="number" placeholder="CT" /></td>
-      <td><input type="number" placeholder="P.P." /></td>
-    `;
-    document.querySelector("#extraTable tbody").appendChild(row);
-  }
+function addExtraRow() {
+  const tbody = document.querySelector("#catalogoTable tbody"); // Tabella principale
+  const row = document.createElement("tr");
+
+  row.innerHTML = `
+    <td><input type="text" placeholder="Codice" /></td>
+    <td><input type="text" placeholder="Descrizione" /></td>
+    <td><input type="number" placeholder="CT" /></td>
+    <td><input type="number" placeholder="P.P." /></td>
+  `;
+
+  tbody.prepend(row); // 🔥 Inserisce la nuova riga in cima alla tabella
+}
+
+// Associa la funzione al pulsante giusto
+document.getElementById("openExtraBtn").addEventListener("click", addExtraRow);
+
 
   document.getElementById("openExtraBtn").addEventListener("click", openExtraPopup);
   window.onload = loadCSVFromGitHub;
