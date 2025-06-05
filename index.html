@@ -136,6 +136,11 @@
 
 
 <script>
+  document.getElementById("toggleCartBtn").addEventListener("click", function() {
+  const cart = document.getElementById("cart");
+  cart.style.display = (cart.style.display === "none" || !cart.style.display) ? "block" : "none";
+});
+
   const inputData = {};
 
   async function loadCSVFromGitHub() {
