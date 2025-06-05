@@ -150,31 +150,28 @@
     });
   });
 
-  function generateExcel() {
-    const cliente = document.getElementById("cliente").value || "Cliente";
-    const wb = XLSX.utils.book_new();
-    const data = [["Codice", "Descrizione", "Quantità", "Prezzo"]];
+ function generateExcel() {
+  const cliente = document.getElementById("cliente").value || "Cliente";
+  const wb = XLSX.utils.book_new();
+  const data = [["Codice", "Descrizione", "Quantità", "Prezzo"]];
 
-    document.querySelectorAll("#catalogoTable tbody tr").forEach(row => {
-      const codice = row.cells[0].textContent.trim();
-      const descrizione = row.cells[1].textContent.trim();
-      const qt = row.cells[2].querySelector("input").value || "";
-      const pp = row.cells[3].querySelector("input").value || "";
-      if (qt || pp) data.push([codice, descrizione, qt, pp]);
-    });
+  // **Scansiona tutte le righe della tabella principale**
+  document.querySelectorAll("#catalogoTable tbody tr").forEach(row => {
+    const codice = row.cells[0].querySelector("input")?.value || row.cells[0].textContent.trim();
+    const descrizione = row.cells[1].querySelector("input")?.value || row.cells[1].textContent.trim();
+    const qt = row.cells[2].querySelector("input")?.value || "";
+    const pp = row.cells[3].querySelector("input")?.value || "";
 
-    document.querySelectorAll("#extraTable tbody tr").forEach(row => {
-      const codice = row.cells[0].querySelector("input").value || "";
-      const descrizione = row.cells[1].querySelector("input").value || "";
-      const qt = row.cells[2].querySelector("input").value || "";
-      const pp = row.cells[3].querySelector("input").value || "";
-      if (qt || pp) data.push([codice, descrizione, qt, pp]);
-    });
+    if (qt || pp) {
+      data.push([codice, descrizione, qt, pp]); // 🔥 Ora include gli articoli extra!
+    }
+  });
 
-    const ws = XLSX.utils.aoa_to_sheet([[`Cliente: ${cliente}`], [], ...data]);
-    XLSX.utils.book_append_sheet(wb, ws, "Ordine");
-    XLSX.writeFile(wb, `${cliente.replace(/\s+/g, "_")}_ordine.xlsx`);
-  }
+  // **Genera e scarica il file Excel**
+  const ws = XLSX.utils.aoa_to_sheet([[`Cliente: ${cliente}`], [], ...data]);
+  XLSX.utils.book_append_sheet(wb, ws, "Ordine");
+  XLSX.writeFile(wb, `${cliente.replace(/\s+/g, "_")}_ordine.xlsx`);
+}
 
   function openExtraPopup() {
     document.getElementById("extraPopup").style.display = "block";
