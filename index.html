@@ -87,10 +87,31 @@
       table, th, td {
         font-size: 14px;
       }
+      #cart {
+  position: fixed; /* Rimane fisso */
+  top: 50px; /* Leggermente sotto il pulsante */
+  left: 10px; /* Angolo a sinistra */
+  width: 250px; /* Più compatto */
+  background: white;
+  border: 2px solid #0077b6;
+  padding: 10px;
+  border-radius: 8px;
+  display: none; /* Nascosto di default */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+}
+
+/* Rimuoviamo la "X" */
+#closeCartBtn {
+  display: none; /* Nasconde il pulsante di chiusura */
+}
+
     }
   </style>
 </head>
 <body>
+  
+<button id="toggleCartBtn">🛒 Mostra Carrello</button>
 
 <h1>Ordini</h1>
 
