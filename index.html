@@ -2,8 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="view
-    port" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ordini</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -133,7 +132,14 @@
   </thead>
   <tbody></tbody>
 </table>
+  
+  <div id="cart">
+  <h2>Carrello</h2>
+  <p>Qui compariranno gli articoli selezionati.</p>
+</div>
 
+
+<!-- ... tutto il codice precedente identico ... -->
 
 <script>
   document.getElementById("toggleCartBtn").addEventListener("click", function() {
@@ -176,28 +182,29 @@
     });
   });
 
- function generateExcel() {
-  const cliente = document.getElementById("cliente").value || "Cliente";
-  const wb = XLSX.utils.book_new();
-  const data = [["Codice", "Descrizione", "Quantità", "Prezzo"]];
+  function generateExcel() {
+    const cliente = document.getElementById("cliente").value || "Cliente";
+    const wb = XLSX.utils.book_new();
+    const data = [["Codice", "Descrizione", "Quantità", "Prezzo"]];
 
-  // **Scansiona tutte le righe della tabella principale**
-  document.querySelectorAll("#catalogoTable tbody tr").forEach(row => {
-    const codice = row.cells[0].querySelector("input")?.value || row.cells[0].textContent.trim();
-    const descrizione = row.cells[1].querySelector("input")?.value || row.cells[1].textContent.trim();
-    const qt = row.cells[2].querySelector("input")?.value || "";
-    const pp = row.cells[3].querySelector("input")?.value || "";
+    document.querySelectorAll("#catalogoTable tbody tr").forEach(row => {
+      const codiceCell = row.cells[0];
+      const descrizioneCell = row.cells[1];
+      const qt = row.cells[2].querySelector("input")?.value || "";
+      const pp = row.cells[3].querySelector("input")?.value || "";
 
-    if (qt || pp) {
-      data.push([codice, descrizione, qt, pp]); // 🔥 Ora include gli articoli extra!
-    }
-  });
+      const codice = codiceCell.querySelector("input") ? codiceCell.querySelector("input").value : codiceCell.textContent.trim();
+      const descrizione = descrizioneCell.querySelector("input") ? descrizioneCell.querySelector("input").value : descrizioneCell.textContent.trim();
 
-  // **Genera e scarica il file Excel**
-  const ws = XLSX.utils.aoa_to_sheet([[`Cliente: ${cliente}`], [], ...data]);
-  XLSX.utils.book_append_sheet(wb, ws, "Ordine");
-  XLSX.writeFile(wb, `${cliente.replace(/\s+/g, "_")}_ordine.xlsx`);
-}
+      if (qt || pp) {
+        data.push([codice, descrizione, qt, pp]);
+      }
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet([[`Cliente: ${cliente}`], [], ...data]);
+    XLSX.utils.book_append_sheet(wb, ws, "Ordine");
+    XLSX.writeFile(wb, `${cliente.replace(/\s+/g, "_")}_ordine.xlsx`);
+  }
 
   function openExtraPopup() {
     document.getElementById("extraPopup").style.display = "block";
@@ -207,27 +214,25 @@
     document.getElementById("extraPopup").style.display = "none";
   }
 
-function addExtraRow() {
-  const tbody = document.querySelector("#catalogoTable tbody"); // Tabella principale
-  const row = document.createElement("tr");
+  function addExtraRow() {
+    const tbody = document.querySelector("#catalogoTable tbody");
+    const row = document.createElement("tr");
 
-  row.innerHTML = `
-    <td><input type="text" placeholder="Codice" /></td>
-    <td><input type="text" placeholder="Descrizione" /></td>
-    <td><input type="number" placeholder="CT" /></td>
-    <td><input type="number" placeholder="P.P." /></td>
-  `;
+    row.innerHTML = `
+      <td><input type="text" placeholder="Codice" /></td>
+      <td><input type="text" placeholder="Descrizione" /></td>
+      <td><input type="number" placeholder="CT" /></td>
+      <td><input type="number" placeholder="P.P." /></td>
+    `;
 
-  tbody.prepend(row); // 🔥 Inserisce la nuova riga in cima alla tabella
-}
+    tbody.prepend(row);
+  }
 
-// Associa la funzione al pulsante giusto
-document.getElementById("openExtraBtn").addEventListener("click", addExtraRow);
+  document.getElementById("openExtraBtn").addEventListener("click", addExtraRow);
 
-
-  document.getElementById("openExtraBtn").addEventListener("click", openExtraPopup);
   window.onload = loadCSVFromGitHub;
 </script>
 
 </body>
 </html>
+
