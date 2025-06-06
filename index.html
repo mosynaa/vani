@@ -2,13 +2,28 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="view
-    port" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ordini</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     
+    #showCartBtn {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  padding: 8px 12px;
+  background-color: #0077b6;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#showCartBtn:hover {
+  background-color: #023e8a;
+}
+
     body {
       font-family: 'Poppins', sans-serif;
       background-color: #f5f7fa;
@@ -91,6 +106,8 @@
   </style>
 </head>
 <body>
+  
+<button id="showCartBtn">🛒 Mostra Carrello</button>
 
 <h1>Ordini</h1>
 
@@ -102,6 +119,7 @@
 </div>
 
 <table id="catalogoTable">
+
   <thead>
     <tr>
       <th>Codice</th>
@@ -112,9 +130,56 @@
   </thead>
   <tbody></tbody>
 </table>
+  <div id="cartPopup">
+  <div id="cartContent">
+    <h2>Carrello Riepilogativo</h2>
+    <div id="cartItems"></div>
+    <button id="closeCartBtn">Chiudi</button>
+  </div>
+</div>
+
 
 
 <script>
+  
+  function showCart() {
+  const cartPopup = document.getElementById("cartPopup");
+  const cartItemsDiv = document.getElementById("cartItems");
+
+  cartItemsDiv.innerHTML = ""; // Puliamo il carrello ogni volta
+
+  let cartItems = [];
+
+  // Troviamo gli articoli con quantità inserita
+  document.querySelectorAll("#catalogoTable tbody tr").forEach(row => {
+    const codice = row.cells[0].textContent.trim();
+    const descrizione = row.cells[1].textContent.trim();
+    const qt = row.cells[2].querySelector("input").value;
+
+    if (qt && qt > 0) {
+      cartItems.push({ codice, descrizione, quantita: qt });
+    }
+  });
+
+  if (cartItems.length > 0) {
+    cartItems.forEach(item => {
+      cartItemsDiv.innerHTML += `<p>${item.quantita}x ${item.descrizione}</p>`;
+    });
+  } else {
+    cartItemsDiv.innerHTML = `<p>Nessun articolo selezionato.</p>`;
+  }
+
+  cartPopup.style.display = "block"; // Mostriamo il popup
+}
+
+function closeCart() {
+  document.getElementById("cartPopup").style.display = "none";
+}
+
+// Colleghiamo le funzioni ai pulsanti
+document.getElementById("showCartBtn").addEventListener("click", showCart);
+document.getElementById("closeCartBtn").addEventListener("click", closeCart);
+
   const inputData = {};
 
   async function loadCSVFromGitHub() {
