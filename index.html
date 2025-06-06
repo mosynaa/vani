@@ -149,6 +149,57 @@
 
   const inputData = {};
 
+function updateCart() {
+  const cart = document.getElementById("cart");
+  cart.innerHTML = "<h2>Carrello</h2>";
+
+  let cartItems = [];
+
+  document.querySelectorAll("#catalogoTable tbody tr").forEach(row => {
+    const codice = row.cells[0].textContent.trim();
+    const descrizione = row.cells[1].textContent.trim();
+    const qt = row.cells[2].querySelector("input").value;
+
+    if (qt && qt > 0) {
+      cartItems.push({ codice, descrizione, quantita: qt });
+    }
+  });
+
+  if (cartItems.length > 0) {
+    cartItems.forEach(item => {
+      cart.innerHTML += `<p>${item.quantita}x ${item.descrizione}</p>`;
+    });
+  } else {
+    cart.innerHTML += `<p>Nessun articolo selezionato.</p>`;
+  }
+}
+
+// Qui inizia il caricamento della tabella
+async function loadCSVFromGitHub() {
+  const url = "https://raw.githubusercontent.com/mosynaa/ordinecil/main/catalogo.csv";
+  const response = await fetch(url);
+  const text = await response.text();
+  const rows = text.trim().split("\n").slice(1).map(row => row.split(","));
+  const tbody = document.querySelector("#catalogoTable tbody");
+  tbody.innerHTML = "";
+
+  rows.forEach(([codice, descrizione, categoria, prezzo]) => {
+    const row = document.createElement("tr");
+
+    const qtKey = `qt_${codice}`;
+
+    row.innerHTML = `
+      <td>${codice}</td>
+      <td>${descrizione}</td>
+      <td><input type="number" placeholder="CT" value="${inputData[qtKey] || ""}" oninput="inputData['${qtKey}']=this.value; updateCart()" /></td>
+      <td>${prezzo}</td>
+    `;
+
+    tbody.appendChild(row);
+  });
+}
+
+
   async function loadCSVFromGitHub() {
     const url = "https://raw.githubusercontent.com/mosynaa/ordinecil/main/catalogo.csv";
     const response = await fetch(url);
