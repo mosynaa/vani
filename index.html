@@ -2,7 +2,8 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="view
+    port" content="width=device-width, initial-scale=1.0" />
   <title>Ordini</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -86,31 +87,10 @@
       table, th, td {
         font-size: 14px;
       }
-      #cart {
-  position: fixed; /* Rimane fisso */
-  top: 50px; /* Leggermente sotto il pulsante */
-  left: 10px; /* Angolo a sinistra */
-  width: 250px; /* Più compatto */
-  background: white;
-  border: 2px solid #0077b6;
-  padding: 10px;
-  border-radius: 8px;
-  display: none; /* Nascosto di default */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-  font-size: 14px;
-}
-
-/* Rimuoviamo la "X" */
-#closeCartBtn {
-  display: none; /* Nasconde il pulsante di chiusura */
-}
-
     }
   </style>
 </head>
 <body>
-  
-<button id="toggleCartBtn">🛒 Mostra Carrello</button>
 
 <h1>Ordini</h1>
 
@@ -132,73 +112,10 @@
   </thead>
   <tbody></tbody>
 </table>
-  
-  <div id="cart">
-  <h2>Carrello</h2>
-  <p>Qui compariranno gli articoli selezionati.</p>
-</div>
 
-
-<!-- ... tutto il codice precedente identico ... -->
 
 <script>
-  document.getElementById("toggleCartBtn").addEventListener("click", function() {
-  const cart = document.getElementById("cart");
-  cart.style.display = (cart.style.display === "none" || !cart.style.display) ? "block" : "none";
-});
-
   const inputData = {};
-
-function updateCart() {
-  const cart = document.getElementById("cart");
-  cart.innerHTML = "<h2>Carrello</h2>";
-
-  let cartItems = [];
-
-  document.querySelectorAll("#catalogoTable tbody tr").forEach(row => {
-    const codice = row.cells[0].textContent.trim();
-    const descrizione = row.cells[1].textContent.trim();
-    const qt = row.cells[2].querySelector("input").value;
-
-    if (qt && qt > 0) {
-      cartItems.push({ codice, descrizione, quantita: qt });
-    }
-  });
-
-  if (cartItems.length > 0) {
-    cartItems.forEach(item => {
-      cart.innerHTML += `<p>${item.quantita}x ${item.descrizione}</p>`;
-    });
-  } else {
-    cart.innerHTML += `<p>Nessun articolo selezionato.</p>`;
-  }
-}
-
-// Qui inizia il caricamento della tabella
-async function loadCSVFromGitHub() {
-  const url = "https://raw.githubusercontent.com/mosynaa/ordinecil/main/catalogo.csv";
-  const response = await fetch(url);
-  const text = await response.text();
-  const rows = text.trim().split("\n").slice(1).map(row => row.split(","));
-  const tbody = document.querySelector("#catalogoTable tbody");
-  tbody.innerHTML = "";
-
-  rows.forEach(([codice, descrizione, categoria, prezzo]) => {
-    const row = document.createElement("tr");
-
-    const qtKey = `qt_${codice}`;
-
-    row.innerHTML = `
-      <td>${codice}</td>
-      <td>${descrizione}</td>
-      <td><input type="number" placeholder="CT" value="${inputData[qtKey] || ""}" oninput="inputData['${qtKey}']=this.value; updateCart()" /></td>
-      <td>${prezzo}</td>
-    `;
-
-    tbody.appendChild(row);
-  });
-}
-
 
   async function loadCSVFromGitHub() {
     const url = "https://raw.githubusercontent.com/mosynaa/ordinecil/main/catalogo.csv";
@@ -233,29 +150,28 @@ async function loadCSVFromGitHub() {
     });
   });
 
-  function generateExcel() {
-    const cliente = document.getElementById("cliente").value || "Cliente";
-    const wb = XLSX.utils.book_new();
-    const data = [["Codice", "Descrizione", "Quantità", "Prezzo"]];
+ function generateExcel() {
+  const cliente = document.getElementById("cliente").value || "Cliente";
+  const wb = XLSX.utils.book_new();
+  const data = [["Codice", "Descrizione", "Quantità", "Prezzo"]];
 
-    document.querySelectorAll("#catalogoTable tbody tr").forEach(row => {
-      const codiceCell = row.cells[0];
-      const descrizioneCell = row.cells[1];
-      const qt = row.cells[2].querySelector("input")?.value || "";
-      const pp = row.cells[3].querySelector("input")?.value || "";
+  // **Scansiona tutte le righe della tabella principale**
+  document.querySelectorAll("#catalogoTable tbody tr").forEach(row => {
+    const codice = row.cells[0].querySelector("input")?.value || row.cells[0].textContent.trim();
+    const descrizione = row.cells[1].querySelector("input")?.value || row.cells[1].textContent.trim();
+    const qt = row.cells[2].querySelector("input")?.value || "";
+    const pp = row.cells[3].querySelector("input")?.value || "";
 
-      const codice = codiceCell.querySelector("input") ? codiceCell.querySelector("input").value : codiceCell.textContent.trim();
-      const descrizione = descrizioneCell.querySelector("input") ? descrizioneCell.querySelector("input").value : descrizioneCell.textContent.trim();
+    if (qt || pp) {
+      data.push([codice, descrizione, qt, pp]); // 🔥 Ora include gli articoli extra!
+    }
+  });
 
-      if (qt || pp) {
-        data.push([codice, descrizione, qt, pp]);
-      }
-    });
-
-    const ws = XLSX.utils.aoa_to_sheet([[`Cliente: ${cliente}`], [], ...data]);
-    XLSX.utils.book_append_sheet(wb, ws, "Ordine");
-    XLSX.writeFile(wb, `${cliente.replace(/\s+/g, "_")}_ordine.xlsx`);
-  }
+  // **Genera e scarica il file Excel**
+  const ws = XLSX.utils.aoa_to_sheet([[`Cliente: ${cliente}`], [], ...data]);
+  XLSX.utils.book_append_sheet(wb, ws, "Ordine");
+  XLSX.writeFile(wb, `${cliente.replace(/\s+/g, "_")}_ordine.xlsx`);
+}
 
   function openExtraPopup() {
     document.getElementById("extraPopup").style.display = "block";
@@ -265,25 +181,27 @@ async function loadCSVFromGitHub() {
     document.getElementById("extraPopup").style.display = "none";
   }
 
-  function addExtraRow() {
-    const tbody = document.querySelector("#catalogoTable tbody");
-    const row = document.createElement("tr");
+function addExtraRow() {
+  const tbody = document.querySelector("#catalogoTable tbody"); // Tabella principale
+  const row = document.createElement("tr");
 
-    row.innerHTML = `
-      <td><input type="text" placeholder="Codice" /></td>
-      <td><input type="text" placeholder="Descrizione" /></td>
-      <td><input type="number" placeholder="CT" /></td>
-      <td><input type="number" placeholder="P.P." /></td>
-    `;
+  row.innerHTML = `
+    <td><input type="text" placeholder="Codice" /></td>
+    <td><input type="text" placeholder="Descrizione" /></td>
+    <td><input type="number" placeholder="CT" /></td>
+    <td><input type="number" placeholder="P.P." /></td>
+  `;
 
-    tbody.prepend(row);
-  }
+  tbody.prepend(row); // 🔥 Inserisce la nuova riga in cima alla tabella
+}
 
-  document.getElementById("openExtraBtn").addEventListener("click", addExtraRow);
+// Associa la funzione al pulsante giusto
+document.getElementById("openExtraBtn").addEventListener("click", addExtraRow);
 
+
+  document.getElementById("openExtraBtn").addEventListener("click", openExtraPopup);
   window.onload = loadCSVFromGitHub;
 </script>
 
 </body>
 </html>
-
