@@ -230,7 +230,7 @@ document.getElementById("closeCartBtn").addEventListener("click", closeCart);
       row.innerHTML = `
         <td>${codice}</td>
         <td>${descrizione}</td>
-        <td><input type="number" placeholder="CT" value="${inputData[qtKey] || ""}" oninput="inputData['${qtKey}']=this.value" /></td>
+        <td><input type="text" placeholder="CT" value="${inputData[qtKey] || ""}" oninput="inputData['${qtKey}']=this.value" /></td>
         <td><input type="text" placeholder="P.P." value="${inputData[ppKey] || ""}" oninput="inputData['${ppKey}']=this.value" /></td>
       `;
       tbody.appendChild(row);
@@ -247,25 +247,21 @@ document.getElementById("closeCartBtn").addEventListener("click", closeCart);
   });
 
 function generateExcel() {
-  const clientName = document.getElementById('client-name').value || 'Cliente';
-  const table = document.getElementById('catalog-table');
+  const clientName = document.getElementById('cliente').value || 'Cliente';
+  const table = document.getElementById('catalogoTable');
   const rows = table.querySelectorAll('tbody tr');
   const orderItems = [];
 
   rows.forEach(row => {
-    const codice = row.querySelector('.codice')?.textContent.trim();
-    const descrizione = row.querySelector('.descrizione')?.textContent.trim();
-    const quantitaInput = row.querySelector('.quantita input')?.value.trim();
-    const prezzoInput = row.querySelector('.prezzo input')?.value.trim();
+    const codice = row.cells[0].textContent.trim();
+    const descrizione = row.cells[1].textContent.trim();
+    const quantitaInput = row.cells[2].querySelector('input')?.value.trim();
+    const prezzoInput = row.cells[3].querySelector('input')?.value.trim();
 
-    // Condizione per includere l'articolo solo se quantità inserita
     if (quantitaInput !== "") {
-      let quantitaFinale = quantitaInput;
-
-      // Se contiene solo numeri, aggiungi " CT"
-      if (/^\d+$/.test(quantitaInput)) {
-        quantitaFinale = `${quantitaInput} CT`;
-      }
+      let quantitaFinale = /^\d+$/.test(quantitaInput)
+        ? `${quantitaInput} CT`
+        : quantitaInput;
 
       let prezzoFinale = prezzoInput !== "" ? prezzoInput : "P.P.";
 
