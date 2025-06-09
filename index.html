@@ -246,27 +246,48 @@ document.getElementById("closeCartBtn").addEventListener("click", closeCart);
     });
   });
 
- function generateExcel() {
-  const cliente = document.getElementById("cliente").value || "Cliente";
-  const wb = XLSX.utils.book_new();
-  const data = [["Codice", "Descrizione", "Quantità", "Prezzo"]];
+function generateExcel() {
+  const clientName = document.getElementById('client-name').value || 'Cliente';
+  const table = document.getElementById('catalog-table');
+  const rows = table.querySelectorAll('tbody tr');
+  const orderItems = [];
 
-  // **Scansiona tutte le righe della tabella principale**
-  document.querySelectorAll("#catalogoTable tbody tr").forEach(row => {
-    const codice = row.cells[0].querySelector("input")?.value || row.cells[0].textContent.trim();
-    const descrizione = row.cells[1].querySelector("input")?.value || row.cells[1].textContent.trim();
-    const qt = row.cells[2].querySelector("input")?.value || "";
-    const pp = row.cells[3].querySelector("input")?.value || "";
+  rows.forEach(row => {
+    const codice = row.querySelector('.codice')?.textContent.trim();
+    const descrizione = row.querySelector('.descrizione')?.textContent.trim();
+    const quantitaInput = row.querySelector('.quantita input')?.value.trim();
+    const prezzoInput = row.querySelector('.prezzo input')?.value.trim();
 
-    if (qt || pp) {
-      data.push([codice, descrizione, qt, pp]); // 🔥 Ora include gli articoli extra!
+    // Condizione per includere l'articolo solo se quantità inserita
+    if (quantitaInput !== "") {
+      let quantitaFinale = quantitaInput;
+
+      // Se contiene solo numeri, aggiungi " CT"
+      if (/^\d+$/.test(quantitaInput)) {
+        quantitaFinale = `${quantitaInput} CT`;
+      }
+
+      let prezzoFinale = prezzoInput !== "" ? prezzoInput : "P.P.";
+
+      orderItems.push({
+        Codice: codice,
+        Descrizione: descrizione,
+        Quantità: quantitaFinale,
+        'Prezzo P.P.': prezzoFinale
+      });
     }
   });
 
-  // **Genera e scarica il file Excel**
-  const ws = XLSX.utils.aoa_to_sheet([[`Cliente: ${cliente}`], [], ...data]);
+  if (orderItems.length === 0) {
+    alert('Nessun articolo selezionato.');
+    return;
+  }
+
+  const ws = XLSX.utils.json_to_sheet(orderItems);
+  const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Ordine");
-  XLSX.writeFile(wb, `${cliente.replace(/\s+/g, "_")}_ordine.xlsx`);
+
+  XLSX.writeFile(wb, `Ordine_${clientName}.xlsx`);
 }
 
   function openExtraPopup() {
