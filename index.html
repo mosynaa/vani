@@ -160,11 +160,9 @@
   <div id="cartContent">
     <h2>Carrello Riepilogativo</h2>
     <div id="cartItems"></div>
-    <button id="sendOrderBtn">Invia ordine</button>  
     <button id="closeCartBtn">Chiudi</button>
   </div>
 </div>
-
 
 
 
@@ -316,59 +314,6 @@ document.getElementById("openExtraBtn").addEventListener("click", addExtraRow);
 
   document.getElementById("openExtraBtn").addEventListener("click", openExtraPopup);
   window.onload = loadCSVFromGitHub;
-async function sendOrderToGoogleSheet(orderData) {
-  const url = "https://script.google.com/macros/s/AKfycbyEt_w3jDwgRvIATAZxEtiHvAUwcs4iicNM9ovO4Atwwck_Cfw0gmDFttghJFL4oMRu1Q/exec";
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderData)
-    });
-    const result = await response.json();
-    if (result.result === 'success') {
-      alert('Ordine inviato con successo!');
-    } else {
-      alert('Errore nell\'invio: ' + result.message);
-    }
-  } catch (error) {
-    alert('Errore di rete: ' + error.message);
-  }
-}
-document.getElementById("sendOrderBtn").addEventListener("click", () => {
-  const cliente = document.getElementById("cliente").value.trim();
-  if (!cliente) {
-    alert("Inserisci il nome cliente prima di inviare l'ordine.");
-    return;
-  }
-
-  const cartItems = [];
-  document.querySelectorAll("#catalogoTable tbody tr").forEach(row => {
-    const codice = row.cells[0].textContent.trim();
-    const descrizione = row.cells[1].textContent.trim();
-    const quantita = row.cells[2].querySelector("input").value.trim();
-    const prezzo = row.cells[3].querySelector("input").value.trim() || "P.P.";
-
-    if (quantita && quantita !== "0") {
-      cartItems.push({ codice, descrizione, quantita, prezzo });
-    }
-  });
-
-  if (cartItems.length === 0) {
-    alert("Nessun articolo selezionato da inviare.");
-    return;
-  }
-
-  const orderData = {
-    cliente,
-    articoli: cartItems,
-    timestamp: new Date().toISOString()
-  };
-
-  sendOrderToGoogleSheet(orderData);
-});
-
-  
 </script>
 
 </body>
