@@ -231,7 +231,7 @@ document.getElementById("closeCartBtn").addEventListener("click", closeCart);
         <td>${codice}</td>
         <td>${descrizione}</td>
         <td><input type="number" placeholder="CT" value="${inputData[qtKey] || ""}" oninput="inputData['${qtKey}']=this.value" /></td>
-        <td><input type="number" placeholder="P.P." value="${inputData[ppKey] || ""}" oninput="inputData['${ppKey}']=this.value" /></td>
+        <td><input type="text" placeholder="P.P." value="${inputData[ppKey] || ""}" oninput="inputData['${ppKey}']=this.value" /></td>
       `;
       tbody.appendChild(row);
     });
