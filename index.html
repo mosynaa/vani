@@ -143,6 +143,11 @@
   <button onclick="generateExcel()">Genera XLS</button>
   <button id="openExtraBtn">+ Articoli Extra</button>
 </div>
+  
+  <div style="margin-top: 10px;">
+  <textarea id="note" rows="3" style="width: 100%;" placeholder="Note aggiuntive..."></textarea>
+</div>
+
 
 <table id="catalogoTable">
 
@@ -248,6 +253,7 @@ document.getElementById("closeCartBtn").addEventListener("click", closeCart);
 
 function generateExcel() {
   const clientName = document.getElementById('cliente').value || 'Cliente';
+  const note = document.getElementById('note').value.trim();
   const table = document.getElementById('catalogoTable');
   const rows = table.querySelectorAll('tbody tr');
   const orderItems = [];
@@ -278,6 +284,11 @@ const descrizione = row.cells[1].querySelector('input')?.value.trim() || row.cel
     alert('Nessun articolo selezionato.');
     return;
   }
+    if (note) {
+    orderItems.push({ Codice: "", Descrizione: "Note:", Quantità: "", Prezzo: "" });
+    orderItems.push({ Codice: "", Descrizione: note, Quantità: "", Prezzo: "" });
+  }
+
 
   const ws = XLSX.utils.json_to_sheet(orderItems);
   const wb = XLSX.utils.book_new();
